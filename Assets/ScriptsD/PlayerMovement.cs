@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-    void Update()
+    void FixedUpdate()
     {
         // Get input from arrow keys
         float horizontalInput = Input.GetAxis("Horizontal");
