@@ -4,29 +4,26 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 5f;
-    private Animator animator;
+    CharacterController controller;
+    Animator animator;
+    public float speed = 12f;
 
-    void Start()
+    public void Start()
     {
-        // Get the Animator component attached to the player
+        controller = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
     }
 
-    void FixedUpdate()
+    // Update is called once per frame
+    void Update()
     {
-        // Get input from arrow keys
-        float horizontalInput = Input.GetAxis("Horizontal");
-        float verticalInput = Input.GetAxis("Vertical");
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
 
-        // Calculate movement direction
-        Vector3 movement = new Vector3(horizontalInput, 0f, verticalInput).normalized;
+        Vector3 move = transform.right * x + transform.forward * z + new Vector3(0, -9.8f, 0);
 
-        // Move the player
-        transform.Translate(movement * speed * Time.deltaTime, Space.World);
-
-        // Activate walking animation if speed is greater than 1
-        if (movement.magnitude > 0.1f)
+        controller.Move(move * speed * Time.deltaTime);
+        if(move.magnitude > 0.1f)
         {
             animator.SetFloat("movement", 1f);
         }
@@ -35,4 +32,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetFloat("movement", 0f);
         }
     }
+
 }
+    
+
