@@ -11,7 +11,7 @@ public class CommunicationUDP : MonoBehaviour
     public int port = 30000;  // Match the port number with the one used on the ESP32
     public float forceMultiplier = 1f;
     public float stopForceMultiplier = 1f;
-    public float moveSpeed = 5f;
+    static float moveSpeed = 2f;
     Rigidbody rb;
     public GameObject player;
 
@@ -19,15 +19,24 @@ public class CommunicationUDP : MonoBehaviour
 
     void Start()
     {
-        try
+        // Check for network availability
+        if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork ||
+            Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork)
         {
-            udpClient = new UdpClient(port);
-            StartCoroutine(ReceiveData());
-            rb = GetComponent<Rigidbody>();
+            try
+            {
+                udpClient = new UdpClient(port);
+                StartCoroutine(ReceiveData());
+                rb = GetComponent<Rigidbody>();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Exception in Start: " + e.Message);
+            }
         }
-        catch (Exception e)
+        else
         {
-            Debug.LogError("Exception in Start: " + e.Message);
+            Debug.LogError("No network connection available.");
         }
     }
 
@@ -69,30 +78,45 @@ public class CommunicationUDP : MonoBehaviour
 
     void Move(string movement)
     {
+        float forceMagnitude = forceMultiplier * moveSpeed;
+
         if (movement.Contains("Forward"))
         {
-            transform.Translate(Vector3.forward * moveSpeed * Time.deltaTime);
-            player.transform.Rotate(0, 0, 0);
+            rb.AddForce(transform.forward * forceMagnitude, ForceMode.Impulse);
         }
-        else if(movement.Contains("Backwards"))
+        else if (movement.Contains("Backwards"))
         {
-            transform.Translate(Vector3.back * moveSpeed * Time.deltaTime);
-            player.transform.Rotate(0, 0, 0);
+            rb.AddForce(transform.forward * -forceMagnitude, ForceMode.Impulse);
         }
         else if (movement.Contains("Left"))
         {
-            transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
+            //rb.AddForce(transform.right * -forceMagnitude, ForceMode.Impulse);
             player.transform.Rotate(0, -15, 0);
-
         }
         else if (movement.Contains("Right"))
         {
-            transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
+            //rb.AddForce(transform.right * forceMagnitude, ForceMode.Impulse);
             player.transform.Rotate(0, 15, 0);
         }
         else
         {
-
+            rb.velocity = Vector3.zero;
         }
+
+        // Dead-zone to ignore small input changes
+        if (movement.Length < 10)
+        {
+            return;
+        }
+
+        // Rotate the player based on input
+        //if (movement.Contains("Left"))
+        //{
+        //    player.transform.Rotate(0, -15, 0);
+        //}
+        //else if (movement.Contains("Right"))
+        //{
+        //    player.transform.Rotate(0, 15, 0);
+        //}
     }
 }
